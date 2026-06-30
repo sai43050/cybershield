@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Home",
+    "learn": "Learn",
+    "tools": "Tools",
+    "quiz": "Quiz",
+    "resources": "Resources",
+    "signIn": "Sign In"
+  },
+  "hero": {
+    "stay": "Stay",
+    "safe": "Safe",
+    "online": "Online",
+    "subtitle": "Empowering everyone with the knowledge and tools to defend against cyber threats in the modern digital landscape."
+  }
+}
