@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Clock, Award, ChevronRight, RotateCcw, Layers, Zap } from 'lucide-react';
+import { Shield, Clock, Award, ChevronRight, RotateCcw, Layers, Zap, Download } from 'lucide-react';
 import { quizQuestions } from '../data/quizQuestions';
 
 export default function Quiz() {
@@ -91,6 +91,110 @@ export default function Quiz() {
   };
 
   const pct = filteredQuestions.length > 0 ? Math.round((score / filteredQuestions.length) * 100) : 0;
+
+  const downloadCertificate = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1000;
+    canvas.height = 700;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background Gradient
+    const grad = ctx.createLinearGradient(0, 0, 1000, 700);
+    grad.addColorStop(0, '#0f172a');
+    grad.addColorStop(1, '#020617');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1000, 700);
+
+    // Dotted mesh overlay
+    ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
+    for (let x = 30; x < 970; x += 25) {
+      for (let y = 30; y < 670; y += 25) {
+        ctx.beginPath();
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Double borders
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 10;
+    ctx.strokeRect(35, 35, 930, 630);
+
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(50, 50, 900, 600);
+
+    // Decorative corner notches
+    const corners = [
+      { x: 50, y: 50, dx: 1, dy: 1 },
+      { x: 950, y: 50, dx: -1, dy: 1 },
+      { x: 50, y: 650, dx: 1, dy: -1 },
+      { x: 950, y: 650, dx: -1, dy: -1 },
+    ];
+    ctx.fillStyle = '#22d3ee';
+    corners.forEach(c => {
+      ctx.fillRect(c.x, c.y, c.dx * 20, c.dy * 4);
+      ctx.fillRect(c.x, c.y, c.dx * 4, c.dy * 20);
+    });
+
+    // Content headers
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('CYBERSHIELD ACADEMY', 500, 130);
+
+    ctx.fillStyle = '#06b6d4';
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText('VERIFIED CYBER AWARENESS COMPLIANCE', 500, 175);
+
+    // Divider line
+    ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(350, 200);
+    ctx.lineTo(650, 200);
+    ctx.stroke();
+
+    // Body
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'italic 18px serif';
+    ctx.fillText('This is proudly awarded to', 500, 250);
+
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = 'bold 38px sans-serif';
+    ctx.fillText('DEMO DEFENDER', 500, 315);
+
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('for successful completion of the intensive security syllabus and passing the validation quiz', 500, 385);
+    ctx.fillText(`with a performance rating of ${score} / ${filteredQuestions.length} (${pct}%)`, 500, 415);
+
+    // Authenticity Stamp
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('✓ SECURE COMPLIANT STATUS ACTIVE', 500, 480);
+
+    // Issued metadata
+    ctx.fillStyle = '#64748b';
+    ctx.font = '12px monospace';
+    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    ctx.fillText(`DATE ISSUED: ${dateStr.toUpperCase()}`, 280, 560);
+
+    const hash = 'CS-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    ctx.fillText(`VALIDATION ID: ${hash}`, 720, 560);
+
+    // Signatures
+    ctx.fillStyle = '#3b82f6';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('CyberShield Education Council', 500, 620);
+
+    // Download trigger
+    const link = document.createElement('a');
+    link.download = `cybershield_certificate_${hash.toLowerCase()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
 
   // ─── Start Screen ────────────────────────────────────────────────────────
   if (!started) {
@@ -202,6 +306,14 @@ export default function Quiz() {
             >
               <RotateCcw className="h-5 w-5" /> Retake Quiz
             </button>
+            {passed && (
+              <button
+                onClick={downloadCertificate}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyber-primary to-cyber-secondary hover:opacity-90 flex items-center gap-2 font-bold transition-all text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+              >
+                <Download className="h-5 w-5" /> Download Certificate (PNG)
+              </button>
+            )}
           </div>
         </motion.div>
       </div>

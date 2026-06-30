@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Key, Search, AlertTriangle, CheckCircle, XCircle, Copy, RefreshCw, Eye, EyeOff, Mail, Smartphone, FileText } from 'lucide-react';
+import { Shield, Key, Search, AlertTriangle, CheckCircle, XCircle, Copy, RefreshCw, Eye, EyeOff, Mail, Smartphone, FileText, Inbox } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
 
 // ─── Breach Database (simulated) ─────────────────────────────────────────────
@@ -185,8 +185,61 @@ function analyzePayload(input: string): { risk: RiskLevel; flags: ScamFlag[]; sc
   return { risk, flags, score: Math.min(score, 100) };
 }
 
+// ─── Simulated Emails (Sandbox) ────────────────────────────────────────────────
+const simulatedEmails = [
+  {
+    id: 1,
+    senderName: "Netflix Security Support",
+    senderEmail: "support-alert@netf1ix.co.in",
+    subject: "Urgent: Update your payment information immediately",
+    date: "10 mins ago",
+    body: "Dear Customer,\n\nWe were unable to process your monthly subscription payment. As a result, your streaming services will be suspended within 24 hours. Please click the link below to verify your details and update your credit card information immediately to restore service.\n\nBest regards,\nNetflix Support",
+    linkText: "Update Payment Details Here",
+    linkTarget: "http://netf1ix-billing-verify.in/auth/login",
+    isPhishing: true,
+    redFlags: [
+      "Typosquatting sender domain: 'netf1ix.co.in' uses a '1' instead of 'l'",
+      "False urgency: 'suspended within 24 hours' creates panic",
+      "Generic salutation: 'Dear Customer' instead of your name",
+      "Suspicious link URL: 'netf1ix-billing-verify.in' is not netflix.com"
+    ],
+    explanation: "This is a classic billing scam. The attacker uses typosquatting to mimic Netflix's official branding and creates artificial urgency to trick you into entering card details."
+  },
+  {
+    id: 2,
+    senderName: "DHL Express Delivery",
+    senderEmail: "no-reply@dhl-tracking-delivery.com",
+    subject: "Package Delivery Pending: Actions Required",
+    date: "2 hours ago",
+    body: "Hello User,\n\nYour package tracking number DHL-38402-IN is pending delivery at our hub due to unpaid customs fees of $1.50. You must settle this fee within 48 hours to schedule home delivery, otherwise the package will be returned to the sender.\n\nThank you for choosing DHL.",
+    linkText: "Pay Customs Fee ($1.50)",
+    linkTarget: "https://dhl-customs-payment.net/pay",
+    isPhishing: true,
+    redFlags: [
+      "Sender email: 'dhl-tracking-delivery.com' is not official dhl.com",
+      "Vague greeting: 'Hello User'",
+      "Request for card payment: Customs fees are typically paid on delivery or official portal",
+      "Malicious link destination: leads to an unofficial site to steal credit card details"
+    ],
+    explanation: "Customs fee scams target users who frequently shop online. Scammers use low payment amounts (like $1.50) to lower your defense barriers so they can capture your full credit card credentials."
+  },
+  {
+    id: 3,
+    senderName: "Google Workspace Team",
+    senderEmail: "no-reply@workspace.google.com",
+    subject: "Monthly security roundup: Review your dashboard",
+    date: "1 day ago",
+    body: "Hi Demo User,\n\nHere is your security roundup for the past month. All systems are operating normally, and no unauthorized login attempts were detected on your workspace. You can review your dashboard settings at any time.\n\nBest,\nThe Google Workspace Team",
+    linkText: "Go to Google Workspace Admin Console",
+    linkTarget: "https://admin.google.com",
+    isPhishing: false,
+    redFlags: [],
+    explanation: "This email is legitimate. The sender domain matches Google's official 'workspace.google.com' domain and the link leads directly to Google's official admin portal ('admin.google.com') over HTTPS."
+  }
+];
+
 // ─── Main Component ───────────────────────────────────────────────────────────
-type Tab = 'password' | 'scam' | 'breach' | 'payload';
+type Tab = 'password' | 'scam' | 'breach' | 'payload' | 'sandbox';
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState<Tab>('password');
@@ -220,11 +273,17 @@ export default function Tools() {
   const [payloadInput, setPayloadInput] = useState('');
   const [payloadResult, setPayloadResult] = useState<ReturnType<typeof analyzePayload> | null>(null);
 
+  // Sandbox state
+  const [selectedEmailId, setSelectedEmailId] = useState<number>(1);
+  const [sandboxAction, setSandboxAction] = useState<Record<number, 'phishing' | 'safe' | null>>({});
+  const [hoveredUrl, setHoveredUrl] = useState<string | null>(null);
+
   const tabConfig = [
     { id: 'password' as Tab, label: 'Password Pro', icon: <Key className="h-4 w-4" /> },
     { id: 'scam' as Tab, label: 'Scam Detector', icon: <Search className="h-4 w-4" /> },
     { id: 'breach' as Tab, label: 'Breach Scanner', icon: <Mail className="h-4 w-4" /> },
     { id: 'payload' as Tab, label: 'Payload Inspector', icon: <FileText className="h-4 w-4" /> },
+    { id: 'sandbox' as Tab, label: 'Phishing Sandbox', icon: <Inbox className="h-4 w-4" /> },
   ];
 
   const riskConfig = {
@@ -638,6 +697,178 @@ export default function Tools() {
                   </motion.div>
                 )}
               </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* ── PHISHING SANDBOX ── */}
+          {activeTab === 'sandbox' && (
+            <motion.div
+              key="sandbox"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="glass-dark rounded-2xl p-6 border border-white/10 shadow-2xl flex flex-col gap-6"
+            >
+              <div>
+                <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
+                  <Inbox className="h-6 w-6 text-cyber-neon" /> Interactive Phishing Simulator
+                </h2>
+                <p className="text-gray-400 text-sm">
+                  Practice identifying phishing threats by reviewing simulated emails. Hover links to inspect URLs.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
+                {/* Inbox List */}
+                <div className="md:col-span-1 border border-white/10 rounded-xl bg-black/40 overflow-y-auto max-h-[400px]">
+                  <div className="p-3 border-b border-white/10 bg-white/[0.02] text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Inbox Folders (3)
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {simulatedEmails.map(email => {
+                      const action = sandboxAction[email.id];
+                      const isSelected = selectedEmailId === email.id;
+
+                      return (
+                        <button
+                          key={email.id}
+                          onClick={() => setSelectedEmailId(email.id)}
+                          className={`w-full text-left p-3 flex flex-col gap-1 transition-all ${
+                            isSelected ? 'bg-cyber-primary/10 border-l-2 border-cyber-neon' : 'hover:bg-white/[0.02]'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center w-full">
+                            <span className="font-bold text-xs text-white truncate max-w-[70%]">{email.senderName}</span>
+                            <span className="text-[9px] text-gray-500 shrink-0">{email.date}</span>
+                          </div>
+                          <span className="text-xs text-gray-300 truncate font-semibold">{email.subject}</span>
+                          <p className="text-[10px] text-gray-500 truncate">{email.body}</p>
+                          {action && (
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded w-fit mt-1 ${
+                              (action === 'phishing' && email.isPhishing) || (action === 'safe' && !email.isPhishing)
+                                ? 'bg-green-500/10 text-green-400'
+                                : 'bg-red-500/10 text-red-400'
+                            }`}>
+                              {action === 'phishing' ? 'Reported Phishing' : 'Marked Safe'}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Email Viewer */}
+                {(() => {
+                  const email = simulatedEmails.find(e => e.id === selectedEmailId)!;
+                  const action = sandboxAction[email.id];
+                  const hasAnswered = action !== undefined && action !== null;
+
+                  return (
+                    <div className="md:col-span-2 border border-white/10 rounded-xl bg-black/60 p-5 flex flex-col justify-between relative overflow-hidden">
+                      {/* Email Header */}
+                      <div className="pb-4">
+                        <div className="border-b border-white/10 pb-4 mb-4 flex justify-between items-start gap-4">
+                          <div>
+                            <h3 className="font-bold text-white text-base">{email.subject}</h3>
+                            <div className="flex items-center gap-1 text-xs text-gray-400 mt-1 flex-wrap">
+                              <span className="font-semibold text-gray-300">{email.senderName}</span>
+                              <span>&lt;{email.senderEmail}&gt;</span>
+                            </div>
+                          </div>
+                          <span className="text-xs text-gray-500">{email.date}</span>
+                        </div>
+
+                        {/* Email Body */}
+                        <div className="space-y-4 text-xs text-gray-300 leading-relaxed font-sans whitespace-pre-line">
+                          {email.body}
+                        </div>
+
+                        {/* Email CTA Link */}
+                        <div className="mt-6">
+                          <button
+                            onMouseEnter={() => setHoveredUrl(email.linkTarget)}
+                            onMouseLeave={() => setHoveredUrl(null)}
+                            onClick={() => {}}
+                            className="px-4 py-2 bg-blue-600/20 border border-blue-500/40 text-blue-400 rounded-lg text-xs font-bold transition-all hover:bg-blue-600/30 cursor-pointer"
+                          >
+                            {email.linkText}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Interactive Actions Pane */}
+                      <div className="mt-8 pt-4 border-t border-white/10">
+                        {!hasAnswered ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSandboxAction(prev => ({ ...prev, [email.id]: 'phishing' }));
+                                const isCorrect = email.isPhishing;
+                                if (isCorrect) {
+                                  const curXp = parseInt(localStorage.getItem('cybershield_xp') || '1340', 10);
+                                  localStorage.setItem('cybershield_xp', (curXp + 50).toString());
+                                }
+                              }}
+                              className="flex-1 py-2 rounded-lg bg-red-600/20 border border-red-500/40 hover:bg-red-600/30 text-red-400 text-xs font-bold transition-all"
+                            >
+                              Report Phishing 🚨
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSandboxAction(prev => ({ ...prev, [email.id]: 'safe' }));
+                                const isCorrect = !email.isPhishing;
+                                if (isCorrect) {
+                                  const curXp = parseInt(localStorage.getItem('cybershield_xp') || '1340', 10);
+                                  localStorage.setItem('cybershield_xp', (curXp + 50).toString());
+                                }
+                              }}
+                              className="flex-1 py-2 rounded-lg bg-green-600/20 border border-green-500/40 hover:bg-green-600/30 text-green-400 text-xs font-bold transition-all"
+                            >
+                              Mark as Safe ✅
+                            </button>
+                          </div>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`p-4 rounded-xl border ${
+                              (action === 'phishing' && email.isPhishing) || (action === 'safe' && !email.isPhishing)
+                                ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                : 'bg-red-500/10 border-red-500/30 text-red-400'
+                            }`}
+                          >
+                            <p className="font-bold text-sm mb-1">
+                              {(action === 'phishing' && email.isPhishing) || (action === 'safe' && !email.isPhishing)
+                                ? '✓ Correct Choice! (+50 XP)'
+                                : '✗ Incorrect Choice'}
+                            </p>
+                            <p className="text-xs text-gray-300 mt-1 leading-relaxed">{email.explanation}</p>
+                            {email.isPhishing && email.redFlags.length > 0 && (
+                              <div className="mt-3">
+                                <span className="font-bold text-xs text-white">Red Flags in this Email:</span>
+                                <ul className="list-disc pl-4 mt-1 space-y-0.5 text-xs text-gray-400">
+                                  {email.redFlags.map((flag, idx) => (
+                                    <li key={idx}>{flag}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+
+                      {/* Simulated URL Status Bar */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-[#07090e] border-t border-white/5 px-3 py-1 flex items-center justify-between text-[10px] font-mono text-gray-500">
+                        <span>Status: Connected</span>
+                        <span className="text-blue-400 truncate max-w-[80%]">
+                          {hoveredUrl ? `Link target: ${hoveredUrl}` : 'Hover CTA button to inspect destination URL'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
