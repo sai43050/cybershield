@@ -8,6 +8,7 @@ import Quiz from './pages/Quiz';
 import Resources from './pages/Resources';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Community from './pages/Community';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -28,6 +29,7 @@ function AnimatedRoutes() {
             <Route path="tools" element={<Tools />} />
             <Route path="quiz" element={<Quiz />} />
             <Route path="resources" element={<Resources />} />
+            <Route path="community" element={<Community />} />
             <Route path="login" element={<Login />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="*" element={<div className="p-20 text-center text-2xl font-bold text-red-500">404 - Page Not Found</div>} />

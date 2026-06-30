@@ -20,6 +20,7 @@ export default function Navbar() {
     { name: 'Tools', path: '/tools' },
     { name: 'Quiz', path: '/quiz' },
     { name: 'Resources', path: '/resources' },
+    { name: 'Community', path: '/community' },
   ];
 
   return (
