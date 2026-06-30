@@ -485,5 +485,83 @@ export const quizQuestions = [
     ],
     answer: 2,
     explanation: "Attackers often hijack or spoof contacts' email accounts. Verify through a separate channel before opening any suspicious attachment."
+  },
+  {
+    id: 37,
+    category: "AI Threats",
+    question: "An unknown caller claims to be your grandchild in a medical emergency, begging for immediate cash. What makes this threat especially difficult to identify today?",
+    options: [
+      "AI voice cloning can mimic your relative's exact voice with just a few seconds of sample audio",
+      "Attackers can intercept standard cellular network signals",
+      "They can change their voice using standard phone settings",
+      "The grandchild's phone is guaranteed to be compromised"
+    ],
+    answer: 0,
+    explanation: "AI voice cloning models can clone a human voice using a short audio clip (from social media or video), making voice-based social engineering highly convincing."
+  },
+  {
+    id: 38,
+    category: "AI Threats",
+    question: "During a work video call, the 'CFO' instructs you to wire $5 million to an offshore account. What is the most secure step before sending the funds?",
+    options: [
+      "Process it immediately since it came from a direct video call",
+      "Verify the request through a trusted, out-of-band channel (like a pre-established phone number or official internal chat)",
+      "Reply to the video call asking if they are sure",
+      "Forward the request to colleagues to check if they saw the call"
+    ],
+    answer: 1,
+    explanation: "Sophisticated deepfake video conferencing scams can impersonate executives in real-time. Always verify high-value transfers through secondary official channels."
+  },
+  {
+    id: 39,
+    category: "IoT & Cloud Security",
+    question: "Why should you isolate smart home/IoT devices (like smart TVs and security cameras) on a guest network?",
+    options: [
+      "To speed up their internet connection speeds",
+      "To prevent a compromised IoT device from accessing your personal computers and network storage",
+      "To save device battery power and router resources",
+      "To bypass router firewalls automatically"
+    ],
+    answer: 1,
+    explanation: "Smart home devices are frequent targets. If an attacker compromises an IoT device on your primary network, they can lateral-move to attack other connected computers."
+  },
+  {
+    id: 40,
+    category: "IoT & Cloud Security",
+    question: "Which of the following is a common cause of personal cloud backup leaks?",
+    options: [
+      "Hardware degradation on remote physical drives",
+      "Misconfiguring folder sharing permissions to 'Anyone with the link' or public",
+      "Leaving your home computer turned off",
+      "Using Cloudflare DNS configurations"
+    ],
+    answer: 1,
+    explanation: "Many cloud leaks occur due to user sharing misconfigurations, making private folders accessible to public search engines and web crawlers."
+  },
+  {
+    id: 41,
+    category: "Crypto Scams",
+    question: "A customer support bot tells you to enter your wallet recovery seed phrase into a Google Form to fix a sync issue. What happens if you do this?",
+    options: [
+      "Your wallet will sync and fix all pending transactions",
+      "Scammers will gain full, irreversible control of all your crypto assets and drain your wallet",
+      "It is a standard security check required by Web3 protocols",
+      "Your security key will be backed up on Google Cloud securely"
+    ],
+    answer: 1,
+    explanation: "Your seed phrase is the master key to your blockchain assets. Legitimate wallet providers will NEVER ask for it under any circumstance. Sharing it grants full wallet ownership to the scammer."
+  },
+  {
+    id: 42,
+    category: "Crypto Scams",
+    question: "What does signing a transaction requesting 'Unlimited Token Allowance' on a suspicious Web3 website do?",
+    options: [
+      "Increases your internet connection speed on the site",
+      "Allows the smart contract to withdraw and transfer all of that token from your wallet without your further consent",
+      "Guarantees a free airdrop of tokens",
+      "Protects your wallet from virus attacks"
+    ],
+    answer: 1,
+    explanation: "Token allowances grant smart contracts permission to spend tokens on your behalf. Granting unlimited allowance to a malicious site lets them drain all of that asset."
   }
 ];

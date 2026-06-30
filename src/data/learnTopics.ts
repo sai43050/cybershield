@@ -890,5 +890,253 @@ export const learnTopics: LearnTopic[] = [
       { question: "What is a 'passive' digital footprint?", options: ["Data you intentionally post", "Data collected without your active participation", "Deleted social media posts", "Encrypted data"], answer: 1 },
       { question: "Which browser is most privacy-focused by default?", options: ["Chrome", "Edge", "Brave / Firefox", "Safari"], answer: 2 }
     ]
+  },
+  {
+    id: "ai-threats",
+    title: "AI Threats & Deepfakes",
+    icon: "Cpu",
+    difficulty: "Intermediate",
+    duration: "12 min",
+    explanation: "Artificial Intelligence has revolutionized cybersecurity—both for defenders and attackers. Generative AI tools allow cybercriminals to automate highly targeted phishing emails, generate realistic audio/video deepfakes to impersonate family members or company executives, write malware faster, and bypass voice-recognition authentication systems. AI-driven social engineering is incredibly persuasive because it mimics human patterns perfectly, making awareness of these techniques critical for digital defense.",
+    howItWorks: [
+      "Attackers collect small samples of a target's voice or image from public videos or social media platforms.",
+      "Using AI voice synthesis or deepfake models, they generate audio or video clips speaking in the voice of the target.",
+      "The cloned voice is used in high-pressure scenarios, like calling relatives claiming to be in an emergency requesting money.",
+      "AI text generation tools write highly personalized spear-phishing emails tailored to the victim's industry or social groups.",
+      "Automated bot systems use AI to dynamically respond to chat messages, making fake profiles appear human and active."
+    ],
+    typesOrVariants: [
+      { name: "Voice Cloning (Audio Deepfakes)", desc: "Using less than 3 seconds of audio to clone someone's voice, then calling family or colleagues to demand money or sensitive details." },
+      { name: "Video Deepfakes", desc: "Synthesizing realistic video clips to put someone's face on another person's body. Used for business scams or blackmail." },
+      { name: "AI Phishing Generators", desc: "Using Large Language Models (LLMs) to write flawless, grammatically correct phishing emails in any language." },
+      { name: "Adversarial Machine Learning", desc: "Tricking machine learning models (like face ID or spam filters) by feeding them specially crafted input." }
+    ],
+    realLifeExamples: [
+      { title: "Hong Kong Deepfake Video Call (2024)", story: "A finance worker at a multinational firm was tricked into paying out $25 million after attending a video conference call with deepfakes of his CFO and other colleagues. He thought it was a real meeting." },
+      { title: "The Kidnapping Voice Clone Scam", story: "A mother received a call from an unknown number. On the line, she heard her daughter crying for help, saying she had been kidnapped. A man then demanded a $50,000 ransom. The daughter was actually safe at school—the voice was entirely AI-generated from a TikTok video." }
+    ],
+    warningSignals: [
+      "Voice calls from family members with flat emotional tones or unusual phrasing",
+      "Strange, mechanical artifacts or background noises during calls",
+      "Video callers who avoid turning sideways or have visual glitches around their eyes/mouths",
+      "Immediate demand for cash or cryptocurrency via voice call from a relative claiming to be in distress",
+      "Emails that use perfect vocabulary but address situations that seem out of context"
+    ],
+    prevention: [
+      "Establish a 'family code word'—a secret word to verify identity in emergency calls.",
+      "If you receive a suspicious call from a loved one in crisis, hang up and call them back on their known number.",
+      "Limit public sharing of high-quality voice recordings or personal videos on social media.",
+      "Be skeptical of unsolicited calls asking you to verify your voice or read a set of sentences.",
+      "Keep software and operating systems updated to benefit from latest AI threat detectors."
+    ],
+    dos: [
+      "Slow down and ask personal, specific questions only the real person would know",
+      "Use multi-factor authentication (MFA) that does not rely solely on voice recognition",
+      "Report deepfake scams immediately to local cyber authorities",
+      "Educate family members about the existence of voice cloning technology",
+      "Use secondary verification (such as text message or email) for financial requests"
+    ],
+    donts: [
+      "Don't transfer money to anyone based on a phone call or video call request alone",
+      "Never answer 'Yes' when an unknown caller asks 'Can you hear me?'—they may record your voice consent",
+      "Don't believe caller ID—numbers can be spoofed to match your contacts",
+      "Avoid publishing long, isolated video/audio files of yourself online",
+      "Never share administrative login credentials based on a voice request"
+    ],
+    stats: [
+      { value: "3,000%", label: "increase in deepfake creation since 2022" },
+      { value: "$25M", label: "lost in a single deepfake video conference scam" },
+      { value: "3 sec", label: "of voice audio needed to clone a human voice" }
+    ],
+    quiz: [
+      { question: "What is the best defense against voice cloning scams?", options: ["Never answer the phone", "Establish a secret family code word", "Block all unknown numbers", "Use a voice changer"], answer: 1 },
+      { question: "How much audio does an AI model typically need to clone a voice?", options: ["At least 2 hours", "Just 3 seconds", "About 30 minutes", "One full day"], answer: 1 }
+    ]
+  },
+  {
+    id: "iot-cloud",
+    title: "IoT & Cloud Protection",
+    icon: "Cloud",
+    difficulty: "Intermediate",
+    duration: "11 min",
+    explanation: "Smart home devices (Internet of Things or IoT) like security cameras, smart TVs, routers, thermostats, and voice assistants offer great convenience but are often highly insecure. Cybercriminals target these devices to gain entry to your home network, steal private video feeds, or recruit them into global botnets to launch attacks on other systems. Similarly, misconfigured cloud storage and backups leak personal files and databases to the public internet daily. Securing your smart devices and cloud data is a primary line of defense.",
+    howItWorks: [
+      "Attackers scan the public internet for IoT devices running outdated software or using default administrative passwords.",
+      "Once a device is compromised, they install custom firmware to control the camera feed or command the device.",
+      "They use the compromised device as a pivot point to attack other computers connected to the same home Wi-Fi network.",
+      "For cloud security, users upload backups to open storage containers (like AWS S3 buckets) without restricting access permissions.",
+      "Web crawlers scan for these public cloud folders, downloading sensitive photos, files, and credentials."
+    ],
+    typesOrVariants: [
+      { name: "IoT Botnets (e.g. Mirai)", desc: "Infecting thousands of smart devices globally to launch coordinated Distributed Denial of Service (DDoS) attacks." },
+      { name: "Camera Hijacking", desc: "Exploiting weak passwords on IP cameras to spy on private spaces and upload feeds online." },
+      { name: "Unsecured Cloud Buckets", desc: "Configuring cloud databases or file shares to be readable by anyone on the internet." },
+      { name: "Cloud Account Takeover", desc: "Breaching credentials (often via phishing) to access full backups, photos, and personal cloud files." }
+    ],
+    realLifeExamples: [
+      { title: "The Mirai Botnet Attack (2016)", story: "Mirai malware infected over 100,000 IoT devices (mostly digital cameras and routers) by exploiting default passwords. It launched a massive DDoS attack that took down Twitter, Netflix, and Reddit across the US East Coast." },
+      { title: "Ring Camera Hack Scams", story: "Attackers guessed passwords for Ring security cameras using credential stuffing. They logged in, spoke to families through the cameras' speakers, and threatened them, showing the danger of weak passwords on smart home tech." }
+    ],
+    warningSignals: [
+      "Smart devices behaving unexpectedly (cameras panning without input, devices restarting)",
+      "Unusual spikes in home Wi-Fi network traffic or slow internet speeds",
+      "Strange login notifications from cloud services (Google Drive, iCloud, OneDrive)",
+      "You receive notifications about files being shared with unknown users from your cloud accounts",
+      "Device admin dashboards requesting password resets out of nowhere"
+    ],
+    prevention: [
+      "Change default passwords on all smart devices and routers immediately after purchase.",
+      "Keep device firmware updated—apply security patches as soon as they are released.",
+      "Set up a separate 'Guest Wi-Fi network' on your router exclusively for smart home/IoT devices.",
+      "Disable UPnP (Universal Plug and Play) and remote management on your home router.",
+      "Audit cloud sharing permissions periodically—ensure no files are shared publicly by default."
+    ],
+    dos: [
+      "Enable Multi-Factor Authentication (MFA) on all cloud storage accounts",
+      "Separate your work computers from IoT devices on your network",
+      "Turn off smart devices when they are not in use (e.g., smart displays, webcams)",
+      "Use robust encryption for cloud backups",
+      "Check router settings to see what devices are connected to your Wi-Fi"
+    ],
+    donts: [
+      "Don't leave default credentials (like 'admin' and '1234') on any smart device",
+      "Never store unencrypted sensitive documents (like passwords or IDs) in the cloud",
+      "Don't connect security-critical devices (like locks or cameras) to public Wi-Fi",
+      "Avoid purchasing cheap, unbranded smart devices that do not receive updates",
+      "Don't share cloud folders with public/anyone links unless absolutely necessary"
+    ],
+    stats: [
+      { value: "1.5B", label: "IoT attacks recorded in the first half of 2021" },
+      { value: "80%", label: "of routers contain known security vulnerabilities" },
+      { value: "45%", label: "of cloud data breaches are caused by misconfigurations" }
+    ],
+    quiz: [
+      { question: "Why is a guest network recommended for IoT devices?", options: ["It makes the internet faster", "It isolates smart devices from your personal computers", "It saves battery power", "It updates the devices automatically"], answer: 1 },
+      { question: "What is the primary cause of cloud data breaches?", options: ["Hardware failures", "User/admin misconfigurations", "Physical server theft", "AI virus attacks"], answer: 1 }
+    ]
+  },
+  {
+    id: "crypto-scams",
+    title: "Crypto & Web3 Scams",
+    icon: "Coins",
+    difficulty: "Advanced",
+    duration: "14 min",
+    explanation: "The decentralized, pseudonymous, and irreversible nature of cryptocurrency makes it a prime target for financial scammers. Once crypto is transferred out of your wallet, it cannot be refunded or recalled. Attackers use sophisticated Web3 exploits, malicious smart contracts, fake wallet apps, and social engineering to steal digital assets. Understanding how blockchain networks operate and recognizing common cryptocurrency scams is essential for anyone dealing with digital currencies.",
+    howItWorks: [
+      "Scammers create a fake token or project, inflating its price through hype (shilling) on social media platforms.",
+      "Alternatively, they send phishing links directing users to connect their Web3 wallet (like MetaMask) to a malicious decentralized app (dApp).",
+      "When connecting, the user unknowingly signs a smart contract transaction that grants the dApp permission to withdraw all assets.",
+      "Other scams involve convincing the victim to share their 12-to-24 word wallet recovery phrase (seed phrase).",
+      "Once the phrase is revealed or transaction signed, all crypto and NFTs are instantly drained to the attacker's address."
+    ],
+    typesOrVariants: [
+      { name: "Rug Pulls", desc: "Developers launch a new crypto project, collect funds from investors, then suddenly abandon the project and drain all liquidity." },
+      { name: "Wallet Draining dApps", desc: "Malicious Web3 websites that request smart contract approval to spend your tokens, draining your wallet upon signature." },
+      { name: "Seed Phrase Phishing", desc: "Fake support pages or browser extensions claiming to fix wallet issues by asking you to enter your recovery seed phrase." },
+      { name: "Pig Butchering (Romance/Investment Scams)", desc: "Long-term grooming where scammers build trust, then guide victims to deposit life savings into fake crypto trading platforms." }
+    ],
+    realLifeExamples: [
+      { title: "The Squid Game Token Rug Pull (2021)", story: "Developers created a cryptocurrency based on the viral show 'Squid Game'. The token soared by thousands of percent. Suddenly, the creators shut down the website, disabled trading, and walked away with an estimated $3.38 million in investor funds." },
+      { title: "MetaMask Support Phishing", story: "Scammers set up fake customer support bots on Twitter. When users posted about wallet issues, the bots replied with a link to a Google Form asking for their 12-word seed phrase. Drained wallets followed shortly after." }
+    ],
+    warningSignals: [
+      "Any request for your 12-to-24 word wallet seed phrase (wallets never ask for this)",
+      "Websites asking for high-limit token spending approvals (e.g. infinite allowance)",
+      "High-return investment promises ('double your crypto in 24 hours!')",
+      "A dApp that requires immediate connection to execute an urgent 'airdrop' or 'claim'",
+      "Unknown tokens mysteriously appearing in your wallet address"
+    ],
+    prevention: [
+      "NEVER type or share your seed phrase on any website or with any person. Store it physically offline.",
+      "Always read transaction details before signing them in your wallet extension.",
+      "Use hardware wallets (cold storage) for large, long-term crypto holdings.",
+      "Verify smart contract addresses on block explorers (like Etherscan) before interacting.",
+      "Use browser extensions that block malicious Web3 sites (like Pocket Universe or Revoke.cash)."
+    ],
+    dos: [
+      "Regularly revoke smart contract allowances using sites like Revoke.cash",
+      "Keep separate wallets for daily dApp interactions and long-term storage",
+      "Double-check website URLs before connecting your wallet",
+      "Report scams to cyber police and listing platforms (CoinGecko, CoinMarketCap)",
+      "Be skeptical of unsolicited investment advice on Discord and Telegram"
+    ],
+    donts: [
+      "Never store your seed phrase in a digital format (notes app, screenshot, cloud)",
+      "Don't click links for 'free airdrops'—they are almost always wallet-draining traps",
+      "Don't sign transactions that you do not fully understand",
+      "Avoid investing in projects with anonymous teams and no code audits",
+      "Never share your screen while your crypto wallet app is open"
+    ],
+    stats: [
+      { value: "$5.9B", label: "lost to crypto scams and hacks in 2023" },
+      { value: "100%", label: "of crypto transactions are irreversible" },
+      { value: "$3.3M+", label: "stolen in the Squid Game token rug pull in minutes" }
+    ],
+    quiz: [
+      { question: "Where is the safest place to store your wallet recovery seed phrase?", options: ["In a secure password manager", "On a physical piece of paper stored offline", "In a draft email", "On your computer desktop"], answer: 1 },
+      { question: "What does Revoke.cash do?", options: ["It deletes your wallet", "It cancels smart contract token spending permissions", "It recovers stolen cryptocurrency", "It hacks blockchain systems"], answer: 1 }
+    ]
+  },
+  {
+    id: "mobile-safety",
+    title: "Mobile Hardening & App Safety",
+    icon: "Smartphone",
+    difficulty: "Beginner",
+    duration: "10 min",
+    explanation: "Our smartphones are central hubs for our digital lives, holding banking apps, personal photos, messaging accounts, and location details. Cybercriminals target mobile devices through malicious apps, overlay scams, notification hijacking, and fake system updates. Predatory apps on official app stores or side-loaded APK files can silently steal contacts, intercept SMS verification codes (OTPs), spy via the camera, and make unauthorized transactions. Hardening your phone's security settings is essential to protecting your privacy.",
+    howItWorks: [
+      "A user downloads an app—such as a PDF reader or flashlight utility—that request excessive permissions (like SMS read or accessibility).",
+      "The app utilizes accessibility permissions to perform overlay attacks, drawing fake login screens over banking apps.",
+      "When the user logs in, the fake screen captures their credentials and sends them to the attacker.",
+      "The app intercepts incoming SMS messages, automatically forwarding OTPs to the attacker's server.",
+      "The attacker logs into the banking app, completes transactions, and deletes the OTP notification so the victim doesn't notice."
+    ],
+    typesOrVariants: [
+      { name: "Overlay Attacks", desc: "Drawing a fake UI over a legitimate app to steal credentials. Common in mobile banking trojans." },
+      { name: "Accessibility Exploits", desc: "Abusing Android's Accessibility service to click buttons, read screen text, and steal credentials automatically." },
+      { name: "Predatory Loan Apps", desc: "Apps that offer quick loans, then copy the user's contact list and photos to blackmail them with high interest rates." },
+      { name: "Side-loading Malware", desc: "Installing apps from unofficial websites (APK files) that bypass system security checks." }
+    ],
+    realLifeExamples: [
+      { title: "Anubis Banking Trojan", story: "Anubis malware disguised itself as a battery saver or utility app on the Google Play Store. Once installed, it asked for accessibility permissions, recorded keys, drew fake banking overlays, and stole login details from over 250 financial apps." },
+      { title: "Predatory Loan Blackmail", story: "A victim downloaded a quick loan app. The app requested contact access. When the victim was late on a payment, the app creators sent morphed, offensive photos of the victim to all their family, friends, and co-workers." }
+    ],
+    warningSignals: [
+      "A simple utility app (like a calculator or keyboard) asking for SMS, contact, or location access",
+      "Rapid battery drain or phone running unusually hot when idle",
+      "Unexpected pop-ups, system warning messages, or sudden settings changes",
+      "Apps that request you to enable 'Accessibility Services' or 'Install Unknown Apps'",
+      "Incoming SMS text messages marked as 'Read' that you never opened"
+    ],
+    prevention: [
+      "Only download apps from official stores (Google Play, Apple App Store)—never side-load APKs.",
+      "Review app permissions (Settings ➔ Apps ➔ Permissions)—revoke unnecessary ones immediately.",
+      "Never grant 'Accessibility Service' permissions to any app unless you have a verified, trusted accessibility need.",
+      "Keep your phone's operating system and security patches fully updated.",
+      "Use biometric locks (fingerprint, face unlock) instead of simple PINs or patterns."
+    ],
+    dos: [
+      "Uninstall unused apps regularly to reduce attack surface",
+      "Enable Google Play Protect or Apple's built-in security scans",
+      "Read user reviews, especially negative ones, before downloading new apps",
+      "Use a PIN to lock your SIM card to prevent physical theft swaps",
+      "Check your phone's account sync settings for unknown connected accounts"
+    ],
+    donts: [
+      "Never download app versions of popular games (like 'Minecraft Free') from third-party sites",
+      "Don't click links in WhatsApp or SMS messages that invite you to install apps",
+      "Don't root (Android) or jailbreak (iOS) your phone—it disables critical system security layers",
+      "Don't charge your phone using public USB ports without a USB data blocker ('USB condom')",
+      "Don't save sensitive login credentials in web browsers on your mobile device"
+    ],
+    stats: [
+      { value: "95%", label: "of mobile malware targets the Android platform" },
+      { value: "2M+", label: "malicious apps blocked by Google Play Protect daily" },
+      { value: "48%", label: "of employees have downloaded a malicious app on their phone" }
+    ],
+    quiz: [
+      { question: "Why is granting 'Accessibility Services' permission to untrusted apps dangerous?", options: ["It drains battery power", "It allows the app to read your screen and click buttons on your behalf", "It makes your screen blurry", "It changes your wallpaper settings"], answer: 1 },
+      { question: "What is an overlay attack?", options: ["Covering the phone screen physically", "Drawing a fake login screen over a real app to steal passwords", "Sending spam notifications", "A network virus"], answer: 1 }
+    ]
   }
 ];
