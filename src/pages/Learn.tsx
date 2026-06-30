@@ -373,6 +373,92 @@ function TopicDetail({ topic, onClose, onComplete, isAlreadyCompleted }: { topic
   );
 }
 
+// ─── Persona Paths (Demographic Guides) ───────────────────────────────────────
+interface PersonaPath {
+  id: string;
+  role: string;
+  icon: string;
+  tagline: string;
+  topThreats: { name: string; desc: string }[];
+  checklist: string[];
+  recommendedModules: string[];
+}
+
+const personaPaths: PersonaPath[] = [
+  {
+    id: "students",
+    role: "Students & Teens",
+    icon: "GraduationCap",
+    tagline: "Secure your academic portals, protect social profiles, and avoid app store/game traps.",
+    topThreats: [
+      { name: "Fake Homework/Mod Apps", desc: "Study assistants or game modifications (e.g. Minecraft mods) that secretly package credentials-stealing spyware." },
+      { name: "Cyberbullying & Blackmail", desc: "Harassment or extortion stemming from private photos shared in trust with online accounts." },
+      { name: "Student Loan & Scholarship Scams", desc: "Fake academic grant letters demanding payment processing fees to register." }
+    ],
+    checklist: [
+      "Never install app packages (.apks) shared over unofficial channels (Discord, Telegram).",
+      "Set social media accounts to Private and block DMs from strangers.",
+      "Compartmentalize accounts: use distinct emails for gaming and school files.",
+      "Report extortion immediately to a trusted school authority or parent. Do not pay scammers."
+    ],
+    recommendedModules: ["social-media-safety", "mobile-safety", "password-security"]
+  },
+  {
+    id: "parents",
+    role: "Parents & Guardians",
+    icon: "Home",
+    tagline: "Protect your child's data footprints, secure home devices, and audit payments.",
+    topThreats: [
+      { name: "Sharenting Privacy Leaks", desc: "Oversharing child data (names, school times, birthdays) that brokers mine to create target profiles." },
+      { name: "Predatory Game Chatrooms", desc: "Scammers posing as other children in lobbies (Roblox, Fortnite) to extract location details." },
+      { name: "Accidental In-App Spend", desc: "Linked credit cards that let children spend large sums without PIN verification." }
+    ],
+    checklist: [
+      "Enable age-appropriate filter profiles on all home tablets and screens.",
+      "Require password prompts/biometrics for every payment transaction in App Stores.",
+      "Educate kids to never share schedules or school uniform images on video logs.",
+      "Update default passwords on baby monitors, routers, and smart speakers."
+    ],
+    recommendedModules: ["social-media-safety", "iot-cloud", "safe-online-shopping"]
+  },
+  {
+    id: "seniors",
+    role: "Senior Citizens",
+    icon: "Heart",
+    tagline: "Block tech support popups, safeguard pension assets, and verify voice call clones.",
+    topThreats: [
+      { name: "Tech Support Scams", desc: "Fake browser popups claiming 'VIRUS FOUND!' instructing you to call remote-access scammers." },
+      { name: "Grandchild Voice Clones", desc: "AI-synthesized voice calls pleading for immediate money for a medical or bail crisis." },
+      { name: "Utility Threat Impersonation", desc: "Threats to disconnect electricity, gas, or banking cards unless security OTPs are read over the phone." }
+    ],
+    checklist: [
+      "If a computer page locks with an alert, restart your browser. Legitimate support never contacts you first.",
+      "Never read codes (OTPs) sent to your mobile phone to anyone over the voice line.",
+      "Create a family verification code word to test callers claiming to be relatives.",
+      "Never download remote-control tools (AnyDesk, TeamViewer) at the request of an incoming caller."
+    ],
+    recommendedModules: ["ai-threats", "banking-fraud", "identity-theft"]
+  },
+  {
+    id: "professionals",
+    role: "Working Professionals",
+    icon: "Briefcase",
+    tagline: "Protect business networks, secure endpoints while traveling, and identify social manipulation.",
+    topThreats: [
+      { name: "Business Email Compromise (BEC)", desc: "Spoofed executive emails instructing finance workers to clear confidential transfers." },
+      { name: "Unencrypted Public Network Sniffing", desc: "Accessing corporate assets from hotels/cafes without a VPN, allowing traffic harvesting." },
+      { name: "Targeted LinkedIn Campaigns", desc: "Fake job recruiters sharing file links containing corporate data hijackers." }
+    ],
+    checklist: [
+      "Always call your manager on their verified office extension to double-check wire transfers.",
+      "Activate enterprise VPN tunnels on all shared Wi-Fi networks.",
+      "Keep private data storage isolated: never mix work files on home tablets.",
+      "Be skeptical of unsolicited PDFs or zip archives shared by recruiters."
+    ],
+    recommendedModules: ["social-engineering", "wifi-network-security", "two-factor-auth"]
+  }
+];
+
 // ─── Main Learn Page ──────────────────────────────────────────────────────────
 export default function Learn() {
   const [expandedTopic, setExpandedTopic] = useState<LearnTopic | null>(null);
@@ -381,10 +467,11 @@ export default function Learn() {
     return saved ? JSON.parse(saved) : DEFAULT_COMPLETED;
   });
 
-  const [subTab, setSubTab] = useState<'modules' | 'simulations'>('modules');
+  const [subTab, setSubTab] = useState<'modules' | 'simulations' | 'personas'>('modules');
   const [activeSimId, setActiveSimId] = useState<string>('ceo-invoice');
   const [activeSimStep, setActiveSimStep] = useState<string>('start');
   const [simCompleted, setSimCompleted] = useState<Record<string, boolean>>({});
+  const [activePersonaId, setActivePersonaId] = useState<string>('students');
 
   const handleModuleComplete = (id: string) => {
     if (completedIds.includes(id)) return;
@@ -477,9 +564,19 @@ export default function Learn() {
           >
             <Icons.Compass className="h-4 w-4" /> Simulation Missions
           </button>
+          <button
+            onClick={() => setSubTab('personas')}
+            className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 ${
+              subTab === 'personas'
+                ? 'bg-gradient-to-r from-cyber-primary to-cyber-secondary text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                : 'glass text-gray-400 hover:text-white'
+            }`}
+          >
+            <Icons.Users className="h-4 w-4" /> Targeted Guides
+          </button>
         </div>
 
-        {subTab === 'modules' ? (
+        {subTab === 'modules' && (
           /* Module Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {learnTopics.map((topic, i) => {
@@ -554,7 +651,9 @@ export default function Learn() {
               );
             })}
           </div>
-        ) : (
+        )}
+
+        {subTab === 'simulations' && (
           /* Simulations Panel */
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -673,6 +772,123 @@ export default function Learn() {
                         </button>
                       </motion.div>
                     )}
+                  </div>
+                </div>
+              );
+            })()}
+          </motion.div>
+        )}
+
+        {subTab === 'personas' && (
+          /* Targeted Guides Panel */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 lg:grid-cols-4 gap-6"
+          >
+            {/* Roles Sidebar */}
+            <div className="flex flex-col gap-3">
+              <div className="p-3 border-b border-white/10 bg-white/[0.02] text-xs font-bold text-gray-400 uppercase tracking-wider rounded-t-xl">
+                Select Your Profile
+              </div>
+              {personaPaths.map(p => {
+                const isSelected = activePersonaId === p.id;
+                const Icon = (Icons as any)[p.icon] || Icons.Users;
+
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setActivePersonaId(p.id)}
+                    className={`w-full text-left p-4 rounded-xl border flex items-center gap-3 transition-all ${
+                      isSelected
+                        ? 'bg-cyber-primary/10 border-cyber-neon text-white shadow-[0_0_10px_rgba(34,211,238,0.15)]'
+                        : 'glass-dark border-white/5 hover:border-white/20 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 text-cyber-neon" />
+                    <span className="font-bold text-xs">{p.role}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Role Profile Viewer */}
+            {(() => {
+              const persona = personaPaths.find(p => p.id === activePersonaId)!;
+
+              return (
+                <div className="lg:col-span-3 space-y-6">
+                  {/* Hero Box */}
+                  <div className="glass-dark border border-white/10 p-6 rounded-2xl">
+                    <span className="text-[10px] font-bold text-cyber-neon tracking-wider uppercase">Targeted Awareness Guide</span>
+                    <h3 className="text-xl font-bold text-white mt-1 mb-2">{persona.role} Path</h3>
+                    <p className="text-xs text-gray-300 leading-relaxed font-sans">{persona.tagline}</p>
+                  </div>
+
+                  {/* Body Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Top Threats */}
+                    <div className="glass-dark border border-white/10 p-5 rounded-2xl space-y-4">
+                      <h4 className="font-bold text-red-400 text-sm flex items-center gap-2 border-b border-white/5 pb-2">
+                        <Icons.AlertTriangle className="h-4 w-4" /> Top Focus Threats
+                      </h4>
+                      <div className="space-y-3">
+                        {persona.topThreats.map((threat, idx) => (
+                          <div key={idx} className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+                            <span className="font-bold text-xs text-white block mb-0.5">{threat.name}</span>
+                            <span className="text-[11px] text-gray-400 leading-relaxed font-sans block">{threat.desc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Checklist */}
+                    <div className="glass-dark border border-white/10 p-5 rounded-2xl space-y-4">
+                      <h4 className="font-bold text-green-400 text-sm flex items-center gap-2 border-b border-white/5 pb-2">
+                        <Icons.CheckCircle2 className="h-4 w-4" /> Safety Checklist
+                      </h4>
+                      <div className="space-y-3.5">
+                        {persona.checklist.map((item, idx) => (
+                          <div key={idx} className="flex gap-2 text-[11px] leading-relaxed font-sans text-gray-300">
+                            <span className="text-green-400 shrink-0 font-bold">✓</span>
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recommended Courses */}
+                  <div className="glass-dark border border-white/10 p-5 rounded-2xl">
+                    <h4 className="font-bold text-white text-sm flex items-center gap-2 mb-4">
+                      <Icons.Layers className="h-4 w-4 text-cyber-neon" /> Recommended Learning Modules
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {persona.recommendedModules.map((modId) => {
+                        const recTopic = learnTopics.find(t => t.id === modId);
+                        if (!recTopic) return null;
+                        const TopicIcon = (Icons as any)[recTopic.icon] || Icons.Shield;
+
+                        return (
+                          <button
+                            key={modId}
+                            onClick={() => {
+                              setSubTab('modules');
+                              setExpandedTopic(recTopic);
+                            }}
+                            className="p-3 border border-white/5 hover:border-cyber-primary/40 rounded-xl text-left bg-black/40 hover:bg-white/[0.02] flex items-center gap-3 transition-all group"
+                          >
+                            <div className="p-2 bg-cyber-primary/10 rounded-lg text-cyber-neon group-hover:bg-cyber-primary/25">
+                              <TopicIcon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <span className="font-bold text-[11px] text-white block line-clamp-1">{recTopic.title}</span>
+                              <span className="text-[9px] text-gray-500 uppercase font-bold">{recTopic.difficulty}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               );
