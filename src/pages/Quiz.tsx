@@ -59,6 +59,28 @@ export default function Quiz() {
       setShowExplanation(false);
     } else {
       setIsFinished(true);
+      const finalScorePct = Math.round((score / filteredQuestions.length) * 100);
+      localStorage.setItem('cybershield_avg_score', `${finalScorePct}%`);
+
+      let xpReward = 50;
+      if (finalScorePct >= 80) {
+        localStorage.setItem('cybershield_passed_quiz', 'true');
+        xpReward = 300; // Bonus for passing and earning certificate
+      }
+
+      const currentXp = parseInt(localStorage.getItem('cybershield_xp') || '1340', 10);
+      localStorage.setItem('cybershield_xp', (currentXp + xpReward).toString());
+
+      // Save activity log
+      const activities = JSON.parse(localStorage.getItem('cybershield_activities') || '[]');
+      const newActivity = {
+        id: Date.now(),
+        action: finalScorePct >= 80 ? `Earned CyberShield Certificate` : `Completed Quiz (${finalScorePct}%)`,
+        date: 'Just now',
+        icon: 'award',
+        xp: `+${xpReward} XP`
+      };
+      localStorage.setItem('cybershield_activities', JSON.stringify([newActivity, ...activities].slice(0, 5)));
     }
   };
 

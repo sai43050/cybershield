@@ -38,26 +38,35 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Dashboard() {
-  const user = {
-    name: "Demo User",
-    email: "demo@cybershield.com",
-    joined: "June 2026",
-    level: "Cyber Defender",
-    xp: 1340,
-    maxXp: 2000,
-    streak: 7,
-  };
+  // Load dynamic states from localStorage
+  const completedModules = JSON.parse(localStorage.getItem('cybershield_completed_modules') || '["phishing", "password-security", "two-factor-auth"]');
+  const xp = parseInt(localStorage.getItem('cybershield_xp') || '1340', 10);
+  const hasCert = localStorage.getItem('cybershield_passed_quiz') === 'true';
+  const averageScore = localStorage.getItem('cybershield_avg_score') || '85%';
+  const streak = parseInt(localStorage.getItem('cybershield_streak') || '7', 10);
 
-  const recentActivity = [
+  const activities = JSON.parse(localStorage.getItem('cybershield_activities') || '[]');
+  const defaultActivities = [
     { id: 1, action: "Passed Quiz: Phishing 101", date: "2 hours ago", icon: <Award className="h-4 w-4 text-yellow-400" />, xp: '+150 XP' },
     { id: 2, action: "Read: Malware Deep Dive", date: "Yesterday", icon: <BookOpen className="h-4 w-4 text-cyber-primary" />, xp: '+30 XP' },
     { id: 3, action: "Checked Password Strength", date: "3 days ago", icon: <Shield className="h-4 w-4 text-cyber-secondary" />, xp: '+10 XP' },
   ];
+  const displayActivities = activities.length > 0 ? activities : defaultActivities;
+
+  const user = {
+    name: "Demo User",
+    email: "demo@cybershield.com",
+    joined: "June 2026",
+    level: xp >= 2500 ? "Senior Architect" : xp >= 1800 ? "SecOps Analyst" : "Cyber Defender",
+    xp: xp,
+    maxXp: xp >= 2000 ? 5000 : 2000,
+    streak: streak,
+  };
 
   const statCards = [
-    { label: 'Avg Score', value: '85%', icon: <Target className="h-5 w-5 text-cyber-neon" />, color: 'text-cyber-neon' },
-    { label: 'Modules Done', value: '4/9', icon: <BookOpen className="h-5 w-5 text-cyber-primary" />, color: 'text-cyber-primary' },
-    { label: 'Certificates', value: '1', icon: <Award className="h-5 w-5 text-yellow-400" />, color: 'text-yellow-400' },
+    { label: 'Avg Score', value: averageScore, icon: <Target className="h-5 w-5 text-cyber-neon" />, color: 'text-cyber-neon' },
+    { label: 'Modules Done', value: `${completedModules.length}/12`, icon: <BookOpen className="h-5 w-5 text-cyber-primary" />, color: 'text-cyber-primary' },
+    { label: 'Certificates', value: hasCert ? '1' : '0', icon: <Award className="h-5 w-5 text-yellow-400" />, color: 'text-yellow-400' },
     { label: 'Day Streak', value: `${user.streak}🔥`, icon: <Zap className="h-5 w-5 text-orange-400" />, color: 'text-orange-400' },
   ];
 
@@ -185,18 +194,27 @@ export default function Dashboard() {
             <Clock className="h-5 w-5 text-cyber-secondary" /> Recent Activity
           </h3>
           <div className="space-y-3">
-            {recentActivity.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-black/30 rounded-xl hover:bg-black/50 transition-colors group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/5 rounded-lg group-hover:scale-110 transition-transform">{item.icon}</div>
-                  <div>
-                    <p className="text-gray-200 text-sm font-medium">{item.action}</p>
-                    <p className="text-gray-500 text-xs">{item.date}</p>
+            {displayActivities.map((item: any) => {
+              const iconMap: Record<string, React.ReactNode> = {
+                award: <Award className="h-4 w-4 text-yellow-400" />,
+                learn: <BookOpen className="h-4 w-4 text-cyber-primary" />,
+                shield: <Shield className="h-4 w-4 text-cyber-secondary" />,
+              };
+              const renderedIcon = typeof item.icon === 'string' ? (iconMap[item.icon] || <Shield className="h-4 w-4 text-cyber-secondary" />) : item.icon;
+
+              return (
+                <div key={item.id} className="flex items-center justify-between p-3 bg-black/30 rounded-xl hover:bg-black/50 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/5 rounded-lg group-hover:scale-110 transition-transform">{renderedIcon}</div>
+                    <div>
+                      <p className="text-gray-200 text-sm font-medium">{item.action}</p>
+                      <p className="text-gray-500 text-xs">{item.date}</p>
+                    </div>
                   </div>
+                  <span className="text-cyber-neon text-xs font-bold bg-cyber-primary/10 px-2 py-1 rounded-full">{item.xp}</span>
                 </div>
-                <span className="text-cyber-neon text-xs font-bold bg-cyber-primary/10 px-2 py-1 rounded-full">{item.xp}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </div>

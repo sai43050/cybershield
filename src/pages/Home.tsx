@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Lock, Search, BookOpen, ArrowRight, TrendingUp, Globe, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
@@ -38,6 +39,249 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   }
   return null;
 };
+
+// ─── Cyber Threat Map Simulation Helpers ─────────────────────────────────────
+const HUBS = [
+  { id: 'NYC', name: 'New York', x: 0.25, y: 0.40 },
+  { id: 'LON', name: 'London', x: 0.48, y: 0.32 },
+  { id: 'MUM', name: 'Mumbai', x: 0.69, y: 0.58 },
+  { id: 'TYO', name: 'Tokyo', x: 0.88, y: 0.42 },
+  { id: 'SYD', name: 'Sydney', x: 0.92, y: 0.80 },
+  { id: 'FRA', name: 'Frankfurt', x: 0.52, y: 0.35 },
+  { id: 'SAO', name: 'São Paulo', x: 0.38, y: 0.75 },
+  { id: 'CPT', name: 'Cape Town', x: 0.56, y: 0.82 },
+];
+
+const ATTACK_TYPES = [
+  { type: 'Phishing', color: '#3b82f6', action: 'blocked' },
+  { type: 'Malware Exploit', color: '#8b5cf6', action: 'mitigated' },
+  { type: 'Ransomware', color: '#06b6d4', action: 'isolated' },
+  { type: 'Credential Theft', color: '#ec4899', action: 'interdicted' },
+  { type: 'DDoS Ping', color: '#f59e0b', action: 'absorbed' },
+];
+
+// Simple event bus for logs
+type LogEvent = { time: string; text: string; color: string };
+let logListeners: ((log: LogEvent) => void)[] = [];
+function addLogListener(listener: (log: LogEvent) => void) {
+  logListeners.push(listener);
+  return () => { logListeners = logListeners.filter(l => l !== listener); };
+}
+function broadcastLog(log: LogEvent) {
+  logListeners.forEach(l => l(log));
+}
+
+function LiveAttackLogs() {
+  const [logs, setLogs] = useState<LogEvent[]>([]);
+
+  useEffect(() => {
+    return addLogListener((log) => {
+      setLogs(prev => [log, ...prev].slice(0, 10));
+    });
+  }, []);
+
+  return (
+    <div className="flex-1 overflow-y-auto space-y-2 font-mono text-[10px] pr-1 scrollbar-thin">
+      <AnimatePresence>
+        {logs.map((log, i) => (
+          <motion.div
+            key={i + '-' + log.time}
+            initial={{ opacity: 0, x: -10, height: 0 }}
+            animate={{ opacity: 1, x: 0, height: 'auto' }}
+            exit={{ opacity: 0 }}
+            className="flex items-start gap-1 text-gray-400"
+          >
+            <span className="text-gray-600 font-bold shrink-0">{log.time}</span>
+            <span className="flex-1 leading-normal" style={{ color: log.color }}>
+              {log.text}
+            </span>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ThreatMapCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeArcs = useRef<any[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const triggerAttack = () => {
+      const start = HUBS[Math.floor(Math.random() * HUBS.length)];
+      let end = HUBS[Math.floor(Math.random() * HUBS.length)];
+      while (end.id === start.id) {
+        end = HUBS[Math.floor(Math.random() * HUBS.length)];
+      }
+      const type = ATTACK_TYPES[Math.floor(Math.random() * ATTACK_TYPES.length)];
+
+      activeArcs.current.push({
+        start,
+        end,
+        progress: 0,
+        speed: 0.015 + Math.random() * 0.015,
+        color: type.color,
+        size: 1.5 + Math.random() * 2,
+      });
+
+      // Broadcast log
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      broadcastLog({
+        time: timeStr,
+        text: `[${type.type}] ${start.name} ➔ ${end.name} (${type.action})`,
+        color: type.color,
+      });
+    };
+
+    // Attack trigger interval
+    const interval = setInterval(triggerAttack, 1200);
+
+    // Initial log populate
+    const t = new Date();
+    const timeStr = `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}:${t.getSeconds().toString().padStart(2, '0')}`;
+    broadcastLog({ time: timeStr, text: 'System Initialized. Firewall active.', color: '#10b981' });
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Draw cyber Grid Background
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.04)';
+      ctx.lineWidth = 1;
+      const gridSize = 30;
+      for (let x = 0; x < w; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Draw stylized world dots
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+      for (let x = 20; x < w; x += 15) {
+        for (let y = 20; y < h; y += 15) {
+          // Exclude top-left, bottom-left, etc. roughly to simulate simple continent borders
+          const nx = x / w;
+          const ny = y / h;
+          // Simple math mapping to omit oceans (approximate)
+          const isLand = (
+            (nx > 0.1 && nx < 0.35 && ny > 0.15 && ny < 0.7) || // Americas
+            (nx > 0.42 && nx < 0.65 && ny > 0.1 && ny < 0.55) || // Europe / Africa
+            (nx > 0.6 && nx < 0.9 && ny > 0.25 && ny < 0.75) || // Asia / India
+            (nx > 0.85 && nx < 0.96 && ny > 0.72 && ny < 0.9)    // Australia
+          );
+          if (isLand) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // Draw connections
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 0.5;
+      HUBS.forEach((hub, i) => {
+        HUBS.slice(i + 1).forEach(other => {
+          ctx.beginPath();
+          ctx.moveTo(hub.x * w, hub.y * h);
+          ctx.lineTo(other.x * w, other.y * h);
+          ctx.stroke();
+        });
+      });
+
+      // Draw nodes
+      HUBS.forEach(hub => {
+        const x = hub.x * w;
+        const y = hub.y * h;
+
+        ctx.fillStyle = '#06b6d4';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Node Label
+        ctx.fillStyle = 'rgba(156, 163, 175, 0.7)';
+        ctx.font = '8px monospace';
+        ctx.fillText(hub.id, x + 6, y - 4);
+      });
+
+      // Update and draw active arcs
+      activeArcs.current = activeArcs.current.filter(arc => {
+        arc.progress += arc.speed;
+        if (arc.progress >= 1) return false;
+
+        const sx = arc.start.x * w;
+        const sy = arc.start.y * h;
+        const ex = arc.end.x * w;
+        const ey = arc.end.y * h;
+
+        // Quadratic bezier arc midpoint
+        const mx = (sx + ex) / 2;
+        const my = (sy + ey) / 2 - Math.abs(sx - ex) * 0.18;
+
+        // Draw bezier path
+        ctx.strokeStyle = arc.color + '22';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.quadraticCurveTo(mx, my, ex, ey);
+        ctx.stroke();
+
+        // Draw glowing threat tip
+        const t = arc.progress;
+        // Bezier formula
+        const tx = (1 - t) * (1 - t) * sx + 2 * (1 - t) * t * mx + t * t * ex;
+        const ty = (1 - t) * (1 - t) * sy + 2 * (1 - t) * t * my + t * t * ey;
+
+        ctx.fillStyle = arc.color;
+        ctx.shadowColor = arc.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(tx, ty, arc.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0; // Reset shadow
+
+        return true;
+      });
+
+      animationFrameId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      clearInterval(interval);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />;
+}
 
 export default function Home() {
   const features = [
@@ -131,6 +375,43 @@ export default function Home() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Live Threat Map Simulation */}
+      <section className="py-16 bg-black/40 border-y border-white/5 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-primary/10 border border-cyber-primary/30 text-cyber-neon text-xs font-bold mb-4"
+            >
+              <Globe className="h-3.5 w-3.5 animate-spin-slow" />
+              REAL-TIME MAP SIMULATION
+            </motion.div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">
+              Interactive <span className="text-cyber-neon">Cyber Threat Map</span>
+            </h2>
+            <p className="text-gray-400 max-w-xl mx-auto text-sm">
+              Visualize cyber pings, attacks, and defense vectors mapping across international hubs in real-time.
+            </p>
+          </div>
+
+          <div className="relative rounded-3xl overflow-hidden border border-white/10 glass-dark bg-black/60 aspect-[16/9] md:aspect-[21/9] w-full max-w-6xl mx-auto p-4 flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative min-h-[300px]">
+              <ThreatMapCanvas />
+            </div>
+            {/* Real-time Attack Log Overlay */}
+            <div className="w-full md:w-80 bg-black/50 border border-white/5 rounded-2xl p-4 flex flex-col h-[200px] md:h-auto overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-white/10 pb-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="font-bold text-xs uppercase tracking-wider text-gray-300">Live Attack Vectors</span>
+              </div>
+              <LiveAttackLogs />
+            </div>
           </div>
         </div>
       </section>

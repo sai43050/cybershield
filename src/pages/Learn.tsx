@@ -5,7 +5,8 @@ import type { LearnTopic } from '../data/learnTopics';
 import * as Icons from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const completedIds = ['phishing', 'password-security', 'two-factor-auth'];
+// Preloaded modules if none exist in storage
+const DEFAULT_COMPLETED = ['phishing', 'password-security', 'two-factor-auth'];
 
 // ─── Difficulty Badge ─────────────────────────────────────────────────────────
 function DifficultyBadge({ level }: { level: string }) {
@@ -23,7 +24,7 @@ function DifficultyBadge({ level }: { level: string }) {
 }
 
 // ─── Expanded Topic Card (Full Detail View) ───────────────────────────────────
-function TopicDetail({ topic, onClose }: { topic: LearnTopic; onClose: () => void }) {
+function TopicDetail({ topic, onClose, onComplete, isAlreadyCompleted }: { topic: LearnTopic; onClose: () => void; onComplete: (id: string) => void; isAlreadyCompleted: boolean }) {
   const Icon = (Icons as any)[topic.icon] || Icons.Shield;
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [showQuizResults, setShowQuizResults] = useState(false);
@@ -59,11 +60,16 @@ function TopicDetail({ topic, onClose }: { topic: LearnTopic; onClose: () => voi
             </div>
             <div>
               <h2 className="text-3xl font-extrabold text-white">{topic.title}</h2>
-              <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <DifficultyBadge level={topic.difficulty} />
                 <span className="text-xs text-gray-400 flex items-center gap-1">
                   <Icons.Clock className="h-3 w-3" /> {topic.duration} read
                 </span>
+                {isAlreadyCompleted && (
+                  <span className="text-xs font-bold text-cyber-neon flex items-center gap-1 bg-cyber-primary/10 px-2 py-0.5 rounded-full border border-cyber-primary/30">
+                    <Icons.CheckCircle2 className="h-3.5 w-3.5" /> Completed
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -232,7 +238,13 @@ function TopicDetail({ topic, onClose }: { topic: LearnTopic; onClose: () => voi
               ))}
             </div>
             <button
-              onClick={() => setShowQuizResults(true)}
+              onClick={() => {
+                setShowQuizResults(true);
+                const numCorrect = topic.quiz.filter((q, i) => quizAnswers[i] === q.answer).length;
+                if (numCorrect === topic.quiz.length) {
+                  onComplete(topic.id);
+                }
+              }}
               disabled={Object.keys(quizAnswers).length < topic.quiz.length}
               className="mt-6 w-full py-3 rounded-xl bg-cyber-primary hover:bg-cyber-primary/80 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold transition-all"
             >
@@ -240,6 +252,15 @@ function TopicDetail({ topic, onClose }: { topic: LearnTopic; onClose: () => voi
                 ? `Score: ${topic.quiz.filter((q, i) => quizAnswers[i] === q.answer).length} / ${topic.quiz.length}`
                 : 'Check Answers'}
             </button>
+            {showQuizResults && (
+              <div className="mt-4 text-center">
+                {topic.quiz.filter((q, i) => quizAnswers[i] === q.answer).length === topic.quiz.length ? (
+                  <p className="text-green-400 font-bold text-sm">🎉 Perfect! Module completed. +150 XP rewarded!</p>
+                ) : (
+                  <p className="text-yellow-400 text-sm">Get all answers correct to complete the module and earn XP.</p>
+                )}
+              </div>
+            )}
           </section>
         </div>
       </motion.div>
@@ -250,6 +271,32 @@ function TopicDetail({ topic, onClose }: { topic: LearnTopic; onClose: () => voi
 // ─── Main Learn Page ──────────────────────────────────────────────────────────
 export default function Learn() {
   const [expandedTopic, setExpandedTopic] = useState<LearnTopic | null>(null);
+  const [completedIds, setCompletedIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('cybershield_completed_modules');
+    return saved ? JSON.parse(saved) : DEFAULT_COMPLETED;
+  });
+
+  const handleModuleComplete = (id: string) => {
+    if (completedIds.includes(id)) return;
+    const nextCompleted = [...completedIds, id];
+    setCompletedIds(nextCompleted);
+    localStorage.setItem('cybershield_completed_modules', JSON.stringify(nextCompleted));
+
+    // Reward XP
+    const currentXp = parseInt(localStorage.getItem('cybershield_xp') || '1340', 10);
+    const nextXp = currentXp + 150;
+    localStorage.setItem('cybershield_xp', nextXp.toString());
+
+    // Log activity
+    const activities = JSON.parse(localStorage.getItem('cybershield_activities') || '[]');
+    const newActivity = {
+      id: Date.now(),
+      action: `Completed Module: ${learnTopics.find(t => t.id === id)?.title || id}`,
+      date: 'Just now',
+      xp: '+150 XP'
+    };
+    localStorage.setItem('cybershield_activities', JSON.stringify([newActivity, ...activities].slice(0, 5)));
+  };
 
   return (
     <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8">
@@ -398,7 +445,12 @@ export default function Learn() {
       {/* Expanded Detail Modal */}
       <AnimatePresence>
         {expandedTopic && (
-          <TopicDetail topic={expandedTopic} onClose={() => setExpandedTopic(null)} />
+          <TopicDetail
+            topic={expandedTopic}
+            onClose={() => setExpandedTopic(null)}
+            onComplete={handleModuleComplete}
+            isAlreadyCompleted={completedIds.includes(expandedTopic.id)}
+          />
         )}
       </AnimatePresence>
     </div>

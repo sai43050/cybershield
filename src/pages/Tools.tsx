@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Key, Search, AlertTriangle, CheckCircle, XCircle, Copy, RefreshCw, Eye, EyeOff, Mail, Smartphone } from 'lucide-react';
+import { Shield, Key, Search, AlertTriangle, CheckCircle, XCircle, Copy, RefreshCw, Eye, EyeOff, Mail, Smartphone, FileText } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
 
 // ─── Breach Database (simulated) ─────────────────────────────────────────────
@@ -110,8 +110,83 @@ function prettyCrackTime(raw: string): string {
   return raw;
 }
 
+// ─── Payload Analyzer Engine ──────────────────────────────────────────────────
+function analyzePayload(input: string): { risk: RiskLevel; flags: ScamFlag[]; score: number } {
+  const flags: ScamFlag[] = [];
+  const text = input.trim();
+
+  // 1. File Name Checks
+  if (/\.(exe|scr|vbs|bat|cmd|ps1|lnk|jar|msi|vbe|wsf|hta)$/i.test(text)) {
+    flags.push({
+      label: 'Dangerous Executable Format',
+      severity: 'high',
+      description: 'The file is a program or script that can execute arbitrary code on your device.'
+    });
+  }
+
+  if (/\.[a-zA-Z0-9]+\s+\.(exe|scr|vbs|bat|lnk|msi)$/i.test(text) || /\.[a-zA-Z0-9]+\.{2,}(exe|scr|vbs|bat|lnk|msi)$/i.test(text) || /\.[a-zA-Z0-9]+\s{5,}\.[a-zA-Z0-9]+/i.test(text)) {
+    flags.push({
+      label: 'Hidden Extension Exploit',
+      severity: 'high',
+      description: 'The name uses excessive spaces or dots to hide the true executable extension from the user.'
+    });
+  }
+
+  if (/\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/i.test(text) && !/\.(tar\.gz|rc\.md)$/i.test(text)) {
+    const match = text.match(/\.([a-zA-Z0-9]+)\.([a-zA-Z0-9]+)$/);
+    if (match && match[1] !== match[2]) {
+      flags.push({
+        label: 'Double Extension Detected',
+        severity: 'high',
+        description: `Disguised extension: appears to be a '.${match[1]}' but is actually an executable '.${match[2]}' format.`
+      });
+    }
+  }
+
+  // 2. Email Header Checks
+  if (/spf=fail/i.test(text)) {
+    flags.push({
+      label: 'SPF Fail (Sender Policy Framework)',
+      severity: 'high',
+      description: 'The sending mail server is not authorized to send emails on behalf of the domain owner.'
+    });
+  }
+  if (/dkim=fail/i.test(text)) {
+    flags.push({
+      label: 'DKIM Fail (DomainKeys Identified Mail)',
+      severity: 'high',
+      description: 'The email digital signature is invalid, suggesting the message body was altered in transit.'
+    });
+  }
+  if (/dmarc=fail/i.test(text)) {
+    flags.push({
+      label: 'DMARC Fail',
+      severity: 'high',
+      description: 'The message failed both SPF and DMARC authentication check procedures.'
+    });
+  }
+  if (/x-spoof|x-suspicious-sender/i.test(text)) {
+    flags.push({
+      label: 'Spoofed Sender Header',
+      severity: 'high',
+      description: 'The header suggests the sender address (From:) has been forged.'
+    });
+  }
+
+  const score = flags.reduce((sum, f) => {
+    return sum + (f.severity === 'high' ? 45 : f.severity === 'medium' ? 25 : 10);
+  }, 0);
+
+  let risk: RiskLevel = 'safe';
+  if (score >= 60) risk = 'high';
+  else if (score >= 25) risk = 'medium';
+  else if (score > 0) risk = 'low';
+
+  return { risk, flags, score: Math.min(score, 100) };
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
-type Tab = 'password' | 'scam' | 'breach';
+type Tab = 'password' | 'scam' | 'breach' | 'payload';
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState<Tab>('password');
@@ -141,10 +216,15 @@ export default function Tools() {
   const [breachEmail, setBreachEmail] = useState('');
   const [breachResult, setBreachResult] = useState<{ checked: boolean; breaches: typeof breachDatabase[string] } | null>(null);
 
+  // Payload state
+  const [payloadInput, setPayloadInput] = useState('');
+  const [payloadResult, setPayloadResult] = useState<ReturnType<typeof analyzePayload> | null>(null);
+
   const tabConfig = [
     { id: 'password' as Tab, label: 'Password Pro', icon: <Key className="h-4 w-4" /> },
     { id: 'scam' as Tab, label: 'Scam Detector', icon: <Search className="h-4 w-4" /> },
     { id: 'breach' as Tab, label: 'Breach Scanner', icon: <Mail className="h-4 w-4" /> },
+    { id: 'payload' as Tab, label: 'Payload Inspector', icon: <FileText className="h-4 w-4" /> },
   ];
 
   const riskConfig = {
@@ -474,6 +554,85 @@ export default function Tools() {
                             <li>• Check for suspicious account activity</li>
                           </ul>
                         </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* ── PAYLOAD INSPECTOR ── */}
+          {activeTab === 'payload' && (
+            <motion.div
+              key="payload"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="glass-dark rounded-2xl p-8 border border-white/10 shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <FileText className="h-6 w-6 text-cyber-primary" /> Payload extension & Email Header Inspector
+              </h2>
+              <p className="text-gray-400 text-sm mb-6">
+                Test files (e.g. <span className="text-cyber-neon font-mono">invoice.pdf.exe</span>) or raw email headers (containing <span className="text-cyber-neon font-mono">spf=fail</span> or <span className="text-cyber-neon font-mono">dkim=fail</span>) for hidden security compromises.
+              </p>
+
+              <textarea
+                value={payloadInput}
+                onChange={e => setPayloadInput(e.target.value)}
+                placeholder="Type a file name (e.g., report.pdf.exe) or paste raw email headers..."
+                rows={5}
+                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyber-primary focus:ring-1 focus:ring-cyber-primary transition-all resize-none mb-4 text-sm"
+              />
+              <button
+                onClick={() => setPayloadResult(analyzePayload(payloadInput))}
+                disabled={!payloadInput.trim()}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyber-primary to-cyber-secondary text-white font-bold transition-all disabled:opacity-40 shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] mb-6"
+              >
+                Inspect Payload
+              </button>
+
+              <AnimatePresence>
+                {payloadResult && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                    {/* Risk Badge */}
+                    <div className={`p-4 rounded-xl border mb-4 flex items-center gap-3 ${riskConfig[payloadResult.risk].bg}`}>
+                      {riskConfig[payloadResult.risk].icon}
+                      <div>
+                        <p className={`font-bold ${riskConfig[payloadResult.risk].color}`}>
+                          Inspection Result: {riskConfig[payloadResult.risk].label}
+                        </p>
+                        <p className="text-xs text-gray-400">Suspicious Score: {payloadResult.score}/100</p>
+                      </div>
+                      {/* Score Bar */}
+                      <div className="ml-auto w-24 h-2 bg-black/40 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${payloadResult.score}%` }}
+                          className={`h-full rounded-full ${payloadResult.risk === 'high' ? 'bg-red-500' : payloadResult.risk === 'medium' ? 'bg-orange-500' : 'bg-green-500'}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Flags */}
+                    {payloadResult.flags.length > 0 ? (
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-bold text-gray-300 mb-3">Detected Vectors:</h3>
+                        {payloadResult.flags.map((flag, i) => (
+                          <div key={i} className="p-3 rounded-xl border bg-red-500/5 border-red-500/20 flex items-start gap-3">
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 bg-red-500/20 text-red-400">HIGH RISK</span>
+                            <div>
+                              <p className="text-white font-semibold text-sm">{flag.label}</p>
+                              <p className="text-gray-400 text-xs mt-0.5">{flag.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-green-400 text-sm">
+                        <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
+                        File extension/headers look valid and clean.
                       </div>
                     )}
                   </motion.div>
