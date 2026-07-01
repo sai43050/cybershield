@@ -21,6 +21,7 @@ export default function Navbar() {
     { name: 'Quiz', path: '/quiz' },
     { name: 'Resources', path: '/resources' },
     { name: 'Community', path: '/community' },
+    { name: 'Threat Center', path: '/threat-center' },
   ];
 
   return (

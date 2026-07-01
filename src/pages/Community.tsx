@@ -61,7 +61,32 @@ const defaultPosts: Post[] = [
   }
 ];
 
+// ─── Live Chat Pool ────────────────────────────────────────────────────────────
+interface ChatMsg {
+  id: number;
+  user: string;
+  text: string;
+  time: string;
+  isUser: boolean;
+}
+
+const defaultChatMessages: ChatMsg[] = [
+  { id: 1, user: "NetDefender", text: "Has anyone seen the phishing campaigns spoofing local banks?", time: "12:02 PM", isUser: false },
+  { id: 2, user: "CyberQueen", text: "Yes! They are sending SMS saying electricity will be cut off.", time: "12:03 PM", isUser: false },
+  { id: 3, user: "SecurePro", text: "Always double check the payment gateway URL before entering cards.", time: "12:04 PM", isUser: false },
+];
+
+const chatPool = [
+  { user: "Alice_Ethical", text: "Don't forget to audit your home Wi-Fi and disable UPnP!" },
+  { user: "CyberCop_99", text: "Reporting cyber crime immediately at 1930 Helpline is key to freezing fraud funds." },
+  { user: "Sonia_Sec", text: "AI voice clones are getting scary. Set up secret family passwords!" },
+  { user: "RouterNinja", text: "Always use a guest network for smart TVs and baby cameras." },
+  { user: "MFA_Guru", text: "Authenticator apps (TOTP) are way safer than SMS codes due to SIM swaps." },
+  { user: "CryptoGuard", text: "Never connect your main wallet to unverified airdrop claims." },
+];
+
 export default function Community() {
+  const [pageTab, setPageTab] = useState<'forum' | 'chat'>('forum');
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -77,6 +102,11 @@ export default function Community() {
   const [activePostCommentsId, setActivePostCommentsId] = useState<number | null>(null);
   const [commentText, setCommentText] = useState<Record<number, string>>({});
 
+  // Chat states
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>(defaultChatMessages);
+  const [chatInput, setChatInput] = useState('');
+  const [onlineUsers, setOnlineUsers] = useState(38);
+
   useEffect(() => {
     const saved = localStorage.getItem('cybershield_community_posts');
     if (saved) {
@@ -86,6 +116,34 @@ export default function Community() {
       localStorage.setItem('cybershield_community_posts', JSON.stringify(defaultPosts));
     }
   }, []);
+
+  // Simulation: Online user ticks & incoming chats
+  useEffect(() => {
+    if (pageTab !== 'chat') return;
+
+    const interval = setInterval(() => {
+      // Jitter user count
+      setOnlineUsers(prev => Math.max(30, Math.min(65, prev + (Math.random() > 0.5 ? 1 : -1))));
+
+      // Add a simulated message
+      const randomMsg = chatPool[Math.floor(Math.random() * chatPool.length)];
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      setChatMessages(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          user: randomMsg.user,
+          text: randomMsg.text,
+          time: timeStr,
+          isUser: false
+        }
+      ].slice(-50)); // cap at 50 messages
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [pageTab]);
 
   const savePosts = (updatedPosts: Post[]) => {
     setPosts(updatedPosts);
@@ -172,6 +230,57 @@ export default function Community() {
     setCommentText(prev => ({ ...prev, [postId]: '' }));
   };
 
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const userMsg: ChatMsg = {
+      id: Date.now(),
+      user: "You",
+      text: chatInput.trim(),
+      time: timeStr,
+      isUser: true
+    };
+
+    setChatMessages(prev => [...prev, userMsg]);
+    const typedText = chatInput.toLowerCase();
+    setChatInput('');
+
+    // Simulated response dispatcher after 1.5s
+    setTimeout(() => {
+      let replyText = "Great point! Let's keep sharing cybersecurity tips to stay alert.";
+      let responder = "NetDefender";
+
+      if (typedText.includes("phishing") || typedText.includes("link") || typedText.includes("email")) {
+        replyText = "Typosquatting links are extremely dangerous. I always double-check the exact domain name before clicking.";
+        responder = "Alice_Ethical";
+      } else if (typedText.includes("scam") || typedText.includes("fraud") || typedText.includes("money")) {
+        replyText = "If anyone loses money to a cyber scam, they should immediately call the national helpline 1930 to freeze the funds.";
+        responder = "CyberCop_99";
+      } else if (typedText.includes("password") || typedText.includes("mfa") || typedText.includes("login")) {
+        replyText = "Totally. Adding a YubiKey or using an Authenticator app blocks almost 99% of bulk hacking campaigns.";
+        responder = "SecurePro";
+      } else if (typedText.includes("voice") || typedText.includes("call") || typedText.includes("clone")) {
+        replyText = "Voice cloning scams are rising fast. Having a secret word with family members is a life saver.";
+        responder = "Sonia_Sec";
+      }
+
+      setChatMessages(prev => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          user: responder,
+          text: replyText,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isUser: false
+        }
+      ]);
+    }, 1500);
+  };
+
   // Filter posts
   const filteredPosts = posts.filter(post => {
     const matchesCategory = selectedCategory === 'all' || post.category.toLowerCase() === selectedCategory.toLowerCase();
@@ -203,7 +312,33 @@ export default function Community() {
           </p>
         </div>
 
-        {/* Dashboard Stat Ribbon */}
+        {/* Forum & Chat Tabs */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={() => setPageTab('forum')}
+            className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 ${
+              pageTab === 'forum'
+                ? 'bg-gradient-to-r from-cyber-primary to-cyber-secondary text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]'
+                : 'glass text-gray-400 hover:text-white'
+            }`}
+          >
+            <MessageSquare className="h-4 w-4" /> Discussion Forum
+          </button>
+          <button
+            onClick={() => setPageTab('chat')}
+            className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 ${
+              pageTab === 'chat'
+                ? 'bg-gradient-to-r from-cyber-primary to-cyber-secondary text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]'
+                : 'glass text-gray-400 hover:text-white'
+            }`}
+          >
+            <Users className="h-4 w-4" /> Live Chat Lobby
+          </button>
+        </div>
+
+        {pageTab === 'forum' && (
+          <>
+            {/* Dashboard Stat Ribbon */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
           <div className="glass-dark border border-white/10 rounded-2xl p-4 flex items-center gap-3">
             <div className="p-2.5 bg-cyber-primary/25 rounded-xl text-cyber-neon">
@@ -422,6 +557,82 @@ export default function Community() {
           </div>
 
         </div>
+          </>
+        )}
+
+        {pageTab === 'chat' && (
+          /* Live Chat Lobby Panel */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+          >
+            {/* Chat Messages Log Panel */}
+            <div className="lg:col-span-2 glass-dark border border-white/10 rounded-2xl p-5 flex flex-col justify-between h-[500px]">
+              <div>
+                <div className="border-b border-white/10 pb-3 mb-4 flex justify-between items-center">
+                  <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping" /> Live Chat Lobby
+                  </h3>
+                  <span className="text-[10px] font-bold text-gray-500">{onlineUsers} Defended Citizens Online</span>
+                </div>
+
+                <div className="space-y-3 h-[360px] overflow-y-auto pr-2 flex flex-col">
+                  {chatMessages.map((msg, i) => (
+                    <div
+                      key={msg.id || i}
+                      className={`max-w-[80%] p-3 rounded-2xl text-xs flex flex-col ${
+                        msg.isUser
+                          ? 'bg-cyber-primary/20 border border-cyber-primary/30 text-white self-end rounded-tr-none'
+                          : 'bg-black/40 border border-white/5 text-gray-300 self-start rounded-tl-none'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center gap-4 mb-1">
+                        <span className="font-bold text-cyber-neon text-[10px]">{msg.user}</span>
+                        <span className="text-[9px] text-gray-500">{msg.time}</span>
+                      </div>
+                      <p className="leading-relaxed font-sans">{msg.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat Input Field */}
+              <form onSubmit={handleSendChat} className="flex gap-2 pt-3 border-t border-white/10">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  placeholder="Ask a question or share a tip in real-time (e.g. mention 'phishing', 'scam', 'voice')..."
+                  className="flex-grow bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyber-primary"
+                />
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim()}
+                  className="p-2.5 bg-cyber-primary hover:bg-cyber-primary/80 rounded-xl text-white transition-colors disabled:opacity-40"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
+
+            {/* Sidebar info */}
+            <div className="glass-dark border border-white/10 rounded-2xl p-5 h-fit space-y-4">
+              <h4 className="font-bold text-white text-sm">WebSocket Real-Time Simulation</h4>
+              <p className="text-xs text-gray-400 leading-relaxed font-sans">
+                This lobby simulates a live connection to a decentralized threat intelligence feed. 
+                Other members will occasionally post real-time warnings or reply immediately if you ask questions about key topics like:
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-2">
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">phishing</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">scams</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">password</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">mfa</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">voice clones</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
       </div>
 
